@@ -1,0 +1,45 @@
+import { Agent, Conversation, Message, RealtimeEvent } from "./types";
+
+export type InboxState = {
+  agentsById: Record<string, Agent>;
+  conversationsById: Record<string, Conversation>;
+  conversationOrder: string[];
+  messagesByConversationId: Record<string, Message[]>;
+  activeConversationId: string | null;
+  isLoading: boolean;
+  error: string | null;
+};
+
+export function initialInboxState(): InboxState {
+  return { agentsById: {}, conversationsById: {}, conversationOrder: [], messagesByConversationId: {}, activeConversationId: null, isLoading: true, error: null };
+}
+
+function sortOrder(conversationsById: Record<string, Conversation>) {
+  return Object.values(conversationsById).sort((a, b) => b.updatedAt - a.updatedAt).map((c) => c.id);
+}
+
+export function inboxReducer(state: InboxState, action: any): InboxState {
+  switch (action.type) {
+    case "init": {
+      const agentsById: Record<string, Agent> = {};
+      for (const a of action.payload.agents) agentsById[a.id] = a;
+      const conversationsById: Record<string, Conversation> = {};
+      for (const c of action.payload.conversations) conversationsById[c.id] = c;
+      const messagesByConversationId: Record<string, Message[]> = {};
+      for (const m of action.payload.messages) (messagesByConversationId[m.conversationId] ||= []).push(m);
+      const order = sortOrder(conversationsById);
+      return { ...state, agentsById, conversationsById, conversationOrder: order, messagesByConversationId, activeConversationId: order[0] ?? null, isLoading: false };
+    }
+    case "select":
+      return { ...state, activeConversationId: action.payload.conversationId };
+    case "realtime":
+      return applyRealtimeEvent(state, action.payload);
+    default:
+      return state;
+  }
+}
+
+// Candidate TODO
+export function applyRealtimeEvent(state: InboxState, event: RealtimeEvent): InboxState {
+  return state;
+}
