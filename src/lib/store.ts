@@ -41,5 +41,51 @@ export function inboxReducer(state: InboxState, action: any): InboxState {
 
 // Candidate TODO
 export function applyRealtimeEvent(state: InboxState, event: RealtimeEvent): InboxState {
-  return state;
+  const conversationsById: Record<string, Conversation> = { ...state.conversationsById };
+  const messagesByConversationId: Record<string, Message[]> = { ...state.messagesByConversationId };
+
+  switch(event.type) {
+      case "message:new": {
+        const msg = event.payload;
+        const conversation = conversationsById[msg.conversationId];
+        if (!conversation) return state;
+        const msgs = messagesByConversationId[msg.conversationId] ?? [];
+        messagesByConversationId[msg.conversationId] = [...msgs, msg];
+        const unreadIncrementer = msg.conversationId !== state.activeConversationId ? 1 : 0;
+        conversationsById[msg.conversationId] = {
+          ...conversation,
+          lastMessageId: msg.id,
+          updatedAt: msg.createdAt,
+          unreadCount: conversation.unreadCount + unreadIncrementer
+        };
+      break;
+    }
+    case "conversation:status": {
+      const { conversationId, status } = event.payload;
+      const conversation = conversationsById[conversationId];
+      if (!conversation) return state;
+      conversationsById[conversationId] = { ...conversation, status, updatedAt: Date.now() };
+      break;
+    }
+
+    case "conversation:assign": {
+      const { conversationId, agentId } = event.payload;
+      const conversation = conversationsById[conversationId];
+      if (!conversation) return state;
+      conversationsById[conversationId] = { ...conversation, assignedAgentId: agentId, updatedAt: Date.now() };
+      break;
+    }
+
+    case "conversation:read": {
+      const { conversationId } = event.payload;
+      const conversation = conversationsById[conversationId];
+      if (!conversation) return state;
+      conversationsById[conversationId] = { ...conversation, unreadCount: 0, updatedAt: Date.now() };
+      break;
+    }
+    default:
+      return state;
+  }
+   const conversationOrder = sortOrder(conversationsById);
+  return { ...state, conversationsById, messagesByConversationId, conversationOrder };
 }
