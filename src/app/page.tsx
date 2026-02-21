@@ -25,6 +25,7 @@ export default function Page() {
     });
     return () => unsub();
   }, [state.isLoading, state.conversationOrder, state.agentsById]);
+console.log("state",state);
 
   return (
     <div className="h-screen p-4">
