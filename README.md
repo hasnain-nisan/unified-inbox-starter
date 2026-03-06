@@ -1,102 +1,166 @@
-# Unified Inbox Frontend Exercise (40 Minutes, Offline)
+# Unified Inbox Practical Coding Test (90 Minutes)
 
-## Candidate Brief
+## 1) Goal
 
-You are working on a SaaS unified inbox/chat product.
+Build a small end-to-end feature slice for an omnichannel inbox MVP.
 
-This starter app already includes:
-- A conversation list (left)
-- An active thread view (right)
-- Mock data for agents, conversations, and messages
-- A mock realtime event source
+This starter project already has:
+- Conversation list (left panel)
+- Active thread view (right panel)
+- Mock agents, conversations, and messages
+- Mock realtime event source
 
-Your task is to implement realtime state updates correctly in the reducer layer.
+You must decide implementation order and priorities.
 
-## Timebox
+## 2) Time and Rules
 
-- Total: 40 minutes
-- Offline: do not use external resources
+- Time limit: 90 minutes
+- Internet/docs are allowed
+- AI coding agents are not allowed (for example: Codex, Claude Code, Cursor agent mode)
+- Keep changes focused on this repository
 
-## Main Task
+## 3) Core Requirements
 
-Implement realtime behavior in:
-- `src/lib/store.ts`
-- Function: `applyRealtimeEvent(state, event)`
+### A. UI updates
 
-Supported event types:
-- `message:new`
-- `conversation:read`
-- `conversation:status`
-- `conversation:assign`
+- Improve conversation list row UI with:
+  - Active state
+  - Unread badge
+  - Status (`open`, `pending`, `resolved`)
+  - Channel label (`whatsapp`, `messenger`, `email`)
 
-## Expected Behavior
+- Ensure clear UI states:
+  - Loading
+  - No conversation selected
+  - Empty conversation list
 
-### 1) `message:new`
-When event is `{ type: "message:new", payload: message }`:
-1. If conversation does not exist, return current state.
-2. Append message to that conversation's messages.
+### B. Realtime reducer
+
+- Implement `applyRealtimeEvent(state, event)` in `src/lib/store.ts`
+- Support all event types:
+  - `message:new`
+  - `conversation:read`
+  - `conversation:status`
+  - `conversation:assign`
+
+- Keep `conversationOrder` sorted by `updatedAt` (descending)
+
+### C. Thread actions
+
+- Add actions in thread UI:
+  - Mark as read
+  - Change status
+  - Assign/unassign agent
+
+### D. API integration (minor full-stack)
+
+- Implement `POST /api/conversations/[id]/action`
+- Request body formats:
+  - `{ "type": "read" }`
+  - `{ "type": "status", "status": "open|pending|resolved" }`
+  - `{ "type": "assign", "agentId": "a1" }`
+  - `{ "type": "assign", "agentId": null }`
+- Response:
+  - Return a normalized realtime event matching existing `RealtimeEvent` types
+
+- Connect thread actions to API:
+  - Call API from action controls
+  - Apply returned event through reducer flow
+  - Show basic pending/error state in UI
+
+Notes:
+- In-memory/mock behavior is acceptable
+- No auth or database persistence required
+
+## 4) Realtime Event Rules
+
+### `message:new`
+
+Event shape: `{ type: "message:new", payload: message }`
+
+1. If conversation does not exist, return current state
+2. Append message to that conversation's messages
 3. Update conversation:
-- `lastMessageId = message.id`
-- `updatedAt = message.createdAt`
-- `unreadCount += 1` only when `conversationId !== activeConversationId`
-4. Reorder `conversationOrder` by `updatedAt` (desc).
+  - `lastMessageId = message.id`
+  - `updatedAt = message.createdAt`
+  - `unreadCount += 1` only when `conversationId !== activeConversationId`
+4. Reorder `conversationOrder` by `updatedAt` descending
 
-### 2) `conversation:read`
-When event is `{ type: "conversation:read", payload: { conversationId } }`:
-1. If conversation does not exist, return current state.
+### `conversation:read`
+
+Event shape: `{ type: "conversation:read", payload: { conversationId } }`
+
+1. If conversation does not exist, return current state
 2. Set `unreadCount = 0`
 3. Set `updatedAt = Date.now()`
-4. Reorder `conversationOrder`.
+4. Reorder `conversationOrder`
 
-### 3) `conversation:status`
-When event is `{ type: "conversation:status", payload: { conversationId, status } }`:
-1. If conversation does not exist, return current state.
+### `conversation:status`
+
+Event shape: `{ type: "conversation:status", payload: { conversationId, status } }`
+
+1. If conversation does not exist, return current state
 2. Set `status = payload.status`
 3. Set `updatedAt = Date.now()`
-4. Reorder `conversationOrder`.
+4. Reorder `conversationOrder`
 
-### 4) `conversation:assign`
-When event is `{ type: "conversation:assign", payload: { conversationId, agentId } }`:
-1. If conversation does not exist, return current state.
+### `conversation:assign`
+
+Event shape: `{ type: "conversation:assign", payload: { conversationId, agentId } }`
+
+1. If conversation does not exist, return current state
 2. Set `assignedAgentId = payload.agentId`
 3. Set `updatedAt = Date.now()`
-4. Reorder `conversationOrder`.
+4. Reorder `conversationOrder`
 
-## Constraints
+## 5) Constraints
 
-- Keep updates immutable.
-- Do not mutate existing state objects/arrays.
-- Keep logic inside reducer/store layer.
-- Keep implementation simple and readable.
-- Ignore unknown conversation IDs safely.
+- Keep updates immutable
+- Do not mutate existing objects/arrays
+- Keep business logic in store/reducer layer
+- Ignore unknown conversation IDs safely
+- Keep code readable and production-lean
 
-## UI Checklist
+## 6) Bonus (Optional)
 
-Ensure these states work in the existing UI:
-- Loading state
-- No active conversation selected
-- Active thread updates when new message arrives
+### Bonus A: Sorting and filtering
 
-No design/styling work is required.
+- Add conversation search/filtering:
+  - Search by contact name (and email if added in your implementation)
+  - Filter by status and channel
+  - Optional unread-only toggle
+  - Support combined search + filters
+  - Show empty state when no records match
 
-## Optional (Bonus)
+- Implementation can be:
+  - Frontend local (state/selectors), or
+  - Mock API-assisted
 
-Add minimal reducer tests for:
-- `message:new`
-- One of `conversation:read` or `conversation:status`
+### Bonus B: Minimal reducer tests
 
-## Run
+- Add tests for:
+  - `message:new`
+  - One of: `conversation:read` or `conversation:status`
+
+## 7) Run
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Candidate Submission Checklist
+## 8) Submission Checklist
 
-- [ ] Implemented `applyRealtimeEvent` for all four event types
-- [ ] Kept state updates immutable
-- [ ] Handled unknown conversation IDs without crash
-- [ ] Maintained correct conversation ordering
-- [ ] Verified UI behavior manually
-- [ ] (Optional) Added minimal tests
+- [ ] Core requirements completed
+- [ ] `applyRealtimeEvent` implemented for all required events
+- [ ] Thread action controls added
+- [ ] API route implemented and integrated
+- [ ] Loading/error handling for action requests
+- [ ] Unknown IDs handled safely
+- [ ] Conversation ordering remains correct
+- [ ] (Optional) Sorting/filtering bonus done (local or mock API-backed)
+- [ ] `NOTES.md` added
+- [ ] `NOTES.md` includes:
+  - [ ] What you completed
+  - [ ] What you skipped
+  - [ ] What you would do next with 2 more hours
