@@ -152,11 +152,17 @@ Add tests for:
 - `message:new`
 - One of `conversation:read` or `conversation:status`
 
+Clarification:
+- Bonus tests are optional and there is no penalty for skipping them.
+- This starter does not include a preconfigured test framework.
+- `npm test` is included only to make this explicit.
+
 ## 8) Run
 
 ```bash
 npm install
 npm run dev
+npm test
 ```
 
 ## 9) Submission
@@ -165,6 +171,8 @@ Submit code and include `NOTES.md` with:
 - What you completed
 - What you skipped
 - What you would do next with 2 more hours
+
+Use the provided `NOTES.md` template and fill it in.
 
 Checklist:
 - [ ] Conversation selection wired (clicking row updates active thread)
