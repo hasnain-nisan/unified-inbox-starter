@@ -4,91 +4,101 @@
 
 Build a small end-to-end feature slice for an omnichannel inbox MVP.
 
-This starter project already has:
-- Conversation list (left panel)
-- Active thread view (right panel)
-- Mock agents, conversations, and messages
-- Mock realtime event source
+You can choose your own implementation order and priorities.
 
-You must decide implementation order and priorities.
-
-## 2) Time and Rules
+## 2) Rules
 
 - Time limit: 90 minutes
 - Internet/docs are allowed
 - AI coding agents are not allowed (for example: Codex, Claude Code, Cursor agent mode)
 - Keep changes focused on this repository
 
-## 3) Core Requirements
+## 3) Starter Baseline (Already Provided)
 
-### A. UI updates
+The starter already includes:
+- Full-screen two-panel layout (conversation list + thread)
+- Basic conversation rows with preview and timestamp
+- Basic thread message rendering
+- Loading and empty states for list/thread
+- Mock data and mock realtime event source
 
-- Improve conversation list row UI with:
-  - Active state
-  - Unread badge
-  - Status (`open`, `pending`, `resolved`)
-  - Channel label (`whatsapp`, `messenger`, `email`)
+Do not rebuild these from scratch unless needed for your solution.
 
-- Ensure clear UI states:
-  - Loading
-  - No conversation selected
-  - Empty conversation list
+## 4) Required Candidate Tasks
 
-### B. Realtime reducer
+### A) Conversation List UI
 
-- Implement `applyRealtimeEvent(state, event)` in `src/lib/store.ts`
-- Support all event types:
-  - `message:new`
-  - `conversation:read`
-  - `conversation:status`
-  - `conversation:assign`
+Add/complete row UI features:
+- Conversation selection wiring (click row -> active conversation changes)
+- Active conversation state
+- Unread badge
+- Status chip (`open`, `pending`, `resolved`)
+- Channel label (`whatsapp`, `messenger`, `email`)
 
-- Keep `conversationOrder` sorted by `updatedAt` (descending)
+### B) Realtime Reducer
 
-### C. Thread actions
+Implement `applyRealtimeEvent(state, event)` in `src/lib/store.ts` for:
+- `message:new`
+- `conversation:read`
+- `conversation:status`
+- `conversation:assign`
 
-- Add actions in thread UI:
-  - Mark as read
-  - Change status
-  - Assign/unassign agent
+Keep conversation order sorted by `updatedAt` descending.
 
-### D. API integration (minor full-stack)
+### C) Thread Actions + API Integration
 
-- Implement `POST /api/conversations/[id]/action`
-- Request body formats:
-  - `{ "type": "read" }`
-  - `{ "type": "status", "status": "open|pending|resolved" }`
-  - `{ "type": "assign", "agentId": "a1" }`
-  - `{ "type": "assign", "agentId": null }`
-- Response:
-  - Return a normalized realtime event matching existing `RealtimeEvent` types
+Add thread-level actions:
+- Mark as read
+- Change status
+- Assign/unassign agent
 
-- Connect thread actions to API:
-  - Call API from action controls
-  - Apply returned event through reducer flow
-  - Show basic pending/error state in UI
+Implementation approach (recommended):
+- You may first implement actions locally in frontend state/reducer flow.
+- Then connect those actions to API if time allows.
+
+Implement API route:
+- `POST /api/conversations/[id]/action`
+
+Request body formats:
+- `{ "type": "read" }`
+- `{ "type": "status", "status": "open|pending|resolved" }`
+- `{ "type": "assign", "agentId": "a1" }`
+- `{ "type": "assign", "agentId": null }`
+
+Response:
+- Return a normalized realtime event matching existing `RealtimeEvent` types
+
+Connect UI actions to API:
+- Call API from thread controls
+- Apply returned event via reducer flow
+- Show pending/error state in the UI
+
+Delivery expectation:
+- At least one action should be completed end-to-end (UI + API + reducer flow).
+- Remaining actions can be local/mock if time is limited.
+- Clearly document what is local-only vs API-connected in `NOTES.md`.
 
 Notes:
 - In-memory/mock behavior is acceptable
-- No auth or database persistence required
+- No auth or DB persistence required
 
-## 4) Realtime Event Rules
+## 5) Realtime Behavior Rules
 
 ### `message:new`
 
-Event shape: `{ type: "message:new", payload: message }`
+Event: `{ type: "message:new", payload: message }`
 
 1. If conversation does not exist, return current state
-2. Append message to that conversation's messages
+2. Append message to conversation messages
 3. Update conversation:
-  - `lastMessageId = message.id`
-  - `updatedAt = message.createdAt`
-  - `unreadCount += 1` only when `conversationId !== activeConversationId`
+- `lastMessageId = message.id`
+- `updatedAt = message.createdAt`
+- `unreadCount += 1` only when `conversationId !== activeConversationId`
 4. Reorder `conversationOrder` by `updatedAt` descending
 
 ### `conversation:read`
 
-Event shape: `{ type: "conversation:read", payload: { conversationId } }`
+Event: `{ type: "conversation:read", payload: { conversationId } }`
 
 1. If conversation does not exist, return current state
 2. Set `unreadCount = 0`
@@ -97,7 +107,7 @@ Event shape: `{ type: "conversation:read", payload: { conversationId } }`
 
 ### `conversation:status`
 
-Event shape: `{ type: "conversation:status", payload: { conversationId, status } }`
+Event: `{ type: "conversation:status", payload: { conversationId, status } }`
 
 1. If conversation does not exist, return current state
 2. Set `status = payload.status`
@@ -106,61 +116,62 @@ Event shape: `{ type: "conversation:status", payload: { conversationId, status }
 
 ### `conversation:assign`
 
-Event shape: `{ type: "conversation:assign", payload: { conversationId, agentId } }`
+Event: `{ type: "conversation:assign", payload: { conversationId, agentId } }`
 
 1. If conversation does not exist, return current state
 2. Set `assignedAgentId = payload.agentId`
 3. Set `updatedAt = Date.now()`
 4. Reorder `conversationOrder`
 
-## 5) Constraints
+## 6) Constraints
 
 - Keep updates immutable
 - Do not mutate existing objects/arrays
 - Keep business logic in store/reducer layer
 - Ignore unknown conversation IDs safely
-- Keep code readable and production-lean
+- Keep code readable
 
-## 6) Bonus (Optional)
+## 7) Bonus (Optional)
 
-### Bonus A: Sorting and filtering
+### Bonus A) Sorting and Filtering
 
-- Add conversation search/filtering:
-  - Search by contact name (and email if added in your implementation)
-  - Filter by status and channel
-  - Optional unread-only toggle
-  - Support combined search + filters
-  - Show empty state when no records match
+Add conversation search/filtering:
+- Search by contact name (and email if added by you)
+- Filter by status and channel
+- Optional unread-only toggle
+- Support combined search + filters
+- Show empty state when no records match
 
-- Implementation can be:
-  - Frontend local (state/selectors), or
-  - Mock API-assisted
+Implementation can be:
+- Local frontend state/selectors
+- Mock API-assisted
 
-### Bonus B: Minimal reducer tests
+### Bonus B) Minimal Reducer Tests
 
-- Add tests for:
-  - `message:new`
-  - One of: `conversation:read` or `conversation:status`
+Add tests for:
+- `message:new`
+- One of `conversation:read` or `conversation:status`
 
-## 7) Run
+## 8) Run
 
 ```bash
 npm install
 npm run dev
 ```
 
-## 8) Submission Checklist
+## 9) Submission
 
-- [ ] Core requirements completed
-- [ ] `applyRealtimeEvent` implemented for all required events
-- [ ] Thread action controls added
-- [ ] API route implemented and integrated
-- [ ] Loading/error handling for action requests
+Submit code and include `NOTES.md` with:
+- What you completed
+- What you skipped
+- What you would do next with 2 more hours
+
+Checklist:
+- [ ] Conversation selection wired (clicking row updates active thread)
+- [ ] Realtime reducer implemented for all required event types
+- [ ] Thread actions added
+- [ ] At least one thread action fully integrated with API
+- [ ] Pending/error handling added
 - [ ] Unknown IDs handled safely
 - [ ] Conversation ordering remains correct
-- [ ] (Optional) Sorting/filtering bonus done (local or mock API-backed)
-- [ ] `NOTES.md` added
-- [ ] `NOTES.md` includes:
-  - [ ] What you completed
-  - [ ] What you skipped
-  - [ ] What you would do next with 2 more hours
+- [ ] (Optional) Sorting/filtering bonus completed
