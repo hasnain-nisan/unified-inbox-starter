@@ -27,17 +27,19 @@ export default function Page() {
   }, [state.isLoading, state.conversationOrder, state.agentsById]);
 
   return (
-    <div className="h-screen p-4">
-      <div className="h-full rounded-lg border bg-white overflow-hidden">
-        <div className="h-full grid grid-cols-12">
-          <div className="col-span-5 border-r">
-            <ConversationList state={state} onSelect={(id) => dispatch({ type: "select", payload: { conversationId: id } })} />
-          </div>
-          <div className="col-span-7">
-            <Thread state={state} />
+    <div className="h-screen bg-neutral-100">
+      <main className="h-full p-5">
+        <div className="h-full overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+          <div className="grid h-full grid-cols-1 md:grid-cols-12">
+            <section className="border-neutral-200 md:col-span-5 md:border-r">
+              <ConversationList state={state} onSelect={() => {}} />
+            </section>
+            <section className="md:col-span-7">
+              <Thread state={state} />
+            </section>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
