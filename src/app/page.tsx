@@ -6,11 +6,20 @@ import { agents, conversations, messages } from "../lib/mockData";
 import { initialInboxState, inboxReducer } from "../lib/store";
 import { ConversationStatus } from "../lib/types";
 import { subscribeMockRealtime } from "../lib/mockRealtime";
+import type { FilterState } from "../lib/selectors";
+
+const initialFilters: FilterState = {
+  search: "",
+  status: "",
+  channel: "",
+  unreadOnly: false,
+};
 
 export default function Page() {
   const [state, dispatch] = useReducer(inboxReducer, undefined, initialInboxState);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<FilterState>(initialFilters);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -94,7 +103,9 @@ export default function Page() {
             <section className="border-neutral-200 md:col-span-5 md:border-r">
               <ConversationList 
                 state={state} 
+                filters={filters}
                 onSelect={(id) => dispatch({ type: "select", payload: { conversationId: id } })} 
+                onFilterChange={setFilters}
               />
             </section>
             <section className="md:col-span-7">

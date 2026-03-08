@@ -2,7 +2,7 @@ export type Channel = "whatsapp" | "messenger" | "email";
 export type ConversationStatus = "open" | "pending" | "resolved";
 export type Agent = { id: string; name: string };
 export type Conversation = {
-  id: string; channel: Channel; customerName: string; unreadCount: number;
+  id: string; channel: Channel; customerName: string; email?: string; unreadCount: number;
   assignedAgentId: string | null; status: ConversationStatus;
   lastMessageId: string; updatedAt: number;
 };

@@ -5,9 +5,9 @@ export const agents: Agent[] = [
   { id: "a3", name: "Rafi" }
 ];
 export const conversations: Conversation[] = [
-  { id: "c1", channel: "whatsapp", customerName: "Tanvir Hasan", unreadCount: 2, assignedAgentId: "a1", status: "open", lastMessageId: "m3", updatedAt: 1708362000000 },
-  { id: "c2", channel: "messenger", customerName: "Jannat Ara", unreadCount: 0, assignedAgentId: null, status: "pending", lastMessageId: "m5", updatedAt: 1708361400000 },
-  { id: "c3", channel: "email", customerName: "Fahim Chowdhury", unreadCount: 1, assignedAgentId: "a2", status: "resolved", lastMessageId: "m7", updatedAt: 1708361100000 }
+  { id: "c1", channel: "whatsapp", customerName: "Tanvir Hasan", email: "tanvir@example.com", unreadCount: 2, assignedAgentId: "a1", status: "open", lastMessageId: "m3", updatedAt: 1708362000000 },
+  { id: "c2", channel: "messenger", customerName: "Jannat Ara", email: "jannat@example.com", unreadCount: 0, assignedAgentId: null, status: "pending", lastMessageId: "m5", updatedAt: 1708361400000 },
+  { id: "c3", channel: "email", customerName: "Fahim Chowdhury", email: "fahim@example.com", unreadCount: 1, assignedAgentId: "a2", status: "resolved", lastMessageId: "m7", updatedAt: 1708361100000 }
 ];
 export const messages: Message[] = [
   { id: "m1", conversationId: "c1", from: "customer", text: "Hi, I need help with pricing.", createdAt: 1708361600000 },
