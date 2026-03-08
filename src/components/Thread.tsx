@@ -1,6 +1,6 @@
 'use client';
 import { selectActiveConversation, selectMessages } from "../lib/selectors";
-import { InboxState } from "../lib/store";
+import { Agent, ConversationStatus, InboxState } from "../lib/store";
 
 function formatDateTime(epochMs: number) {
   return new Intl.DateTimeFormat(undefined, {
@@ -11,7 +11,19 @@ function formatDateTime(epochMs: number) {
   }).format(new Date(epochMs));
 }
 
-export default function Thread({ state }: { state: InboxState }) {
+type ThreadActions = {
+  onMarkRead: (conversationId: string) => void;
+  onChangeStatus: (conversationId: string, status: ConversationStatus) => void;
+  onAssign: (conversationId: string, agentId: string | null) => void;
+};
+
+export default function Thread({ 
+  state, 
+  actions 
+}: { 
+  state: InboxState;
+  actions?: ThreadActions;
+}) {
   const active = selectActiveConversation(state);
 
   if (state.isLoading) {
@@ -39,12 +51,58 @@ export default function Thread({ state }: { state: InboxState }) {
   }
 
   const msgs = selectMessages(state, active.id);
+  
+  const agents = Object.values(state.agentsById);
+  const assignedAgent = active.assignedAgentId ? state.agentsById[active.assignedAgentId] : null;
 
   return (
     <div className="flex h-full flex-col">
       <header className="border-b border-neutral-200 px-4 py-3">
-        <h2 className="text-sm font-semibold text-neutral-900">{active.customerName}</h2>
-        <p className="text-xs text-neutral-500">Conversation ID: {active.id}</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-neutral-900">{active.customerName}</h2>
+            <p className="text-xs text-neutral-500">
+              {active.channel} · {active.status}
+              {assignedAgent && ` · Assigned to ${assignedAgent.name}`}
+            </p>
+          </div>
+        </div>
+        
+        {actions && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {active.unreadCount > 0 && (
+              <button
+                onClick={() => actions.onMarkRead(active.id)}
+                className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50"
+              >
+                Mark as Read
+              </button>
+            )}
+            
+            <select
+              value={active.status}
+              onChange={(e) => actions.onChangeStatus(active.id, e.target.value as ConversationStatus)}
+              className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50"
+            >
+              <option value="open">Open</option>
+              <option value="pending">Pending</option>
+              <option value="resolved">Resolved</option>
+            </select>
+            
+            <select
+              value={active.assignedAgentId || ""}
+              onChange={(e) => actions.onAssign(active.id, e.target.value || null)}
+              className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50"
+            >
+              <option value="">Unassigned</option>
+              {agents.map((agent) => (
+                <option key={agent.id} value={agent.id}>
+                  {agent.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </header>
 
       <div className="flex-1 space-y-3 overflow-y-auto bg-neutral-50 p-4">

@@ -41,5 +41,134 @@ export function inboxReducer(state: InboxState, action: any): InboxState {
 
 // Candidate TODO
 export function applyRealtimeEvent(state: InboxState, event: RealtimeEvent): InboxState {
-  return state;
+  switch (event.type) {
+    case "message:new": {
+      const msg = event.payload;
+      const conv = state.conversationsById[msg.conversationId];
+      
+      // If conversation does not exist, return current state
+      if (!conv) return state;
+      
+      // Append message to conversation messages
+      const existingMessages = state.messagesByConversationId[msg.conversationId] || [];
+      const newMessagesByConversationId = {
+        ...state.messagesByConversationId,
+        [msg.conversationId]: [...existingMessages, msg]
+      };
+      
+      // Update conversation: lastMessageId, updatedAt, and unreadCount
+      const shouldIncrementUnread = state.activeConversationId !== msg.conversationId;
+      const updatedConv = {
+        ...conv,
+        lastMessageId: msg.id,
+        updatedAt: msg.createdAt,
+        unreadCount: shouldIncrementUnread ? conv.unreadCount + 1 : conv.unreadCount
+      };
+      
+      const newConversationsById = {
+        ...state.conversationsById,
+        [msg.conversationId]: updatedConv
+      };
+      
+      // Reorder conversation order by updatedAt descending
+      const newOrder = sortOrder(newConversationsById);
+      
+      return {
+        ...state,
+        conversationsById: newConversationsById,
+        messagesByConversationId: newMessagesByConversationId,
+        conversationOrder: newOrder
+      };
+    }
+    
+    case "conversation:read": {
+      const { conversationId } = event.payload;
+      const conv = state.conversationsById[conversationId];
+      
+      // If conversation does not exist, return current state
+      if (!conv) return state;
+      
+      // Update conversation: set unreadCount to 0 and updatedAt
+      const updatedConv = {
+        ...conv,
+        unreadCount: 0,
+        updatedAt: Date.now()
+      };
+      
+      const newConversationsById = {
+        ...state.conversationsById,
+        [conversationId]: updatedConv
+      };
+      
+      // Reorder conversation order
+      const newOrder = sortOrder(newConversationsById);
+      
+      return {
+        ...state,
+        conversationsById: newConversationsById,
+        conversationOrder: newOrder
+      };
+    }
+    
+    case "conversation:status": {
+      const { conversationId, status } = event.payload;
+      const conv = state.conversationsById[conversationId];
+      
+      // If conversation does not exist, return current state
+      if (!conv) return state;
+      
+      // Update conversation status and updatedAt
+      const updatedConv = {
+        ...conv,
+        status,
+        updatedAt: Date.now()
+      };
+      
+      const newConversationsById = {
+        ...state.conversationsById,
+        [conversationId]: updatedConv
+      };
+      
+      // Reorder conversation order
+      const newOrder = sortOrder(newConversationsById);
+      
+      return {
+        ...state,
+        conversationsById: newConversationsById,
+        conversationOrder: newOrder
+      };
+    }
+    
+    case "conversation:assign": {
+      const { conversationId, agentId } = event.payload;
+      const conv = state.conversationsById[conversationId];
+      
+      // If conversation does not exist, return current state
+      if (!conv) return state;
+      
+      // Update conversation assignedAgentId and updatedAt
+      const updatedConv = {
+        ...conv,
+        assignedAgentId: agentId,
+        updatedAt: Date.now()
+      };
+      
+      const newConversationsById = {
+        ...state.conversationsById,
+        [conversationId]: updatedConv
+      };
+      
+      // Reorder conversation order
+      const newOrder = sortOrder(newConversationsById);
+      
+      return {
+        ...state,
+        conversationsById: newConversationsById,
+        conversationOrder: newOrder
+      };
+    }
+    
+    default:
+      return state;
+  }
 }
