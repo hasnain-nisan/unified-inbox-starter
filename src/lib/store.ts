@@ -32,6 +32,27 @@ export function inboxReducer(state: InboxState, action: any): InboxState {
     }
     case "select":
       return { ...state, activeConversationId: action.payload.conversationId };
+    case "markRead": {
+      const conv = state.conversationsById[action.payload.conversationId];
+      if (!conv || conv.unreadCount === 0) return state;
+      const updatedConv: Conversation = { ...conv, unreadCount: 0 };
+      const updatedConversations = { ...state.conversationsById, [action.payload.conversationId]: updatedConv };
+      return { ...state, conversationsById: updatedConversations };
+    }
+    case "setStatus": {
+      const conv = state.conversationsById[action.payload.conversationId];
+      if (!conv) return state;
+      const updatedConv: Conversation = { ...conv, status: action.payload.status };
+      const updatedConversations = { ...state.conversationsById, [action.payload.conversationId]: updatedConv };
+      return { ...state, conversationsById: updatedConversations };
+    }
+    case "assignAgent": {
+      const conv = state.conversationsById[action.payload.conversationId];
+      if (!conv) return state;
+      const updatedConv: Conversation = { ...conv, assignedAgentId: action.payload.agentId };
+      const updatedConversations = { ...state.conversationsById, [action.payload.conversationId]: updatedConv };
+      return { ...state, conversationsById: updatedConversations };
+    }
     case "realtime":
       return applyRealtimeEvent(state, action.payload);
     default:
@@ -39,7 +60,97 @@ export function inboxReducer(state: InboxState, action: any): InboxState {
   }
 }
 
-// Candidate TODO
+function updateConversationOrder(state: InboxState): string[] {
+  return Object.values(state.conversationsById)
+    .sort((a, b) => b.updatedAt - a.updatedAt)
+    .map((c) => c.id);
+}
+
 export function applyRealtimeEvent(state: InboxState, event: RealtimeEvent): InboxState {
-  return state;
+  switch (event.type) {
+    case "message:new": {
+      const msg = event.payload;
+      const conv = state.conversationsById[msg.conversationId];
+      if (!conv) return state;
+
+      const isInActiveConversation = msg.conversationId === state.activeConversationId;
+      const updatedConv: Conversation = {
+        ...conv,
+        lastMessageId: msg.id,
+        updatedAt: msg.createdAt,
+        unreadCount: msg.from === "customer" && !isInActiveConversation ? conv.unreadCount + 1 : conv.unreadCount,
+      };
+
+      const updatedMessages = {
+        ...state.messagesByConversationId,
+        [msg.conversationId]: [...(state.messagesByConversationId[msg.conversationId] || []), msg],
+      };
+
+      const updatedConversations = {
+        ...state.conversationsById,
+        [msg.conversationId]: updatedConv,
+      };
+
+      return {
+        ...state,
+        conversationsById: updatedConversations,
+        messagesByConversationId: updatedMessages,
+        conversationOrder: updateConversationOrder({ ...state, conversationsById: updatedConversations }),
+      };
+    }
+
+    case "conversation:read": {
+      const conv = state.conversationsById[event.payload.conversationId];
+      if (!conv || conv.unreadCount === 0) return state;
+
+      const updatedConv: Conversation = { ...conv, unreadCount: 0, updatedAt: Date.now() };
+      const updatedConversations = {
+        ...state.conversationsById,
+        [event.payload.conversationId]: updatedConv,
+      };
+
+      return {
+        ...state,
+        conversationsById: updatedConversations,
+        conversationOrder: updateConversationOrder({ ...state, conversationsById: updatedConversations }),
+      };
+    }
+
+    case "conversation:status": {
+      const conv = state.conversationsById[event.payload.conversationId];
+      if (!conv) return state;
+
+      const updatedConv: Conversation = { ...conv, status: event.payload.status, updatedAt: Date.now() };
+      const updatedConversations = {
+        ...state.conversationsById,
+        [event.payload.conversationId]: updatedConv,
+      };
+
+      return {
+        ...state,
+        conversationsById: updatedConversations,
+        conversationOrder: updateConversationOrder({ ...state, conversationsById: updatedConversations }),
+      };
+    }
+
+    case "conversation:assign": {
+      const conv = state.conversationsById[event.payload.conversationId];
+      if (!conv) return state;
+
+      const updatedConv: Conversation = { ...conv, assignedAgentId: event.payload.agentId, updatedAt: Date.now() };
+      const updatedConversations = {
+        ...state.conversationsById,
+        [event.payload.conversationId]: updatedConv,
+      };
+
+      return {
+        ...state,
+        conversationsById: updatedConversations,
+        conversationOrder: updateConversationOrder({ ...state, conversationsById: updatedConversations }),
+      };
+    }
+
+    default:
+      return state;
+  }
 }

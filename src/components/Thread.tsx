@@ -11,7 +11,14 @@ function formatDateTime(epochMs: number) {
   }).format(new Date(epochMs));
 }
 
-export default function Thread({ state }: { state: InboxState }) {
+interface ThreadProps {
+  state: InboxState;
+  onMarkRead: (conversationId: string) => void;
+  onSetStatus: (conversationId: string, status: "open" | "pending" | "resolved") => void;
+  onAssignAgent: (conversationId: string, agentId: string | null) => void;
+}
+
+export default function Thread({ state, onMarkRead, onSetStatus, onAssignAgent }: ThreadProps) {
   const active = selectActiveConversation(state);
 
   if (state.isLoading) {
@@ -39,12 +46,46 @@ export default function Thread({ state }: { state: InboxState }) {
   }
 
   const msgs = selectMessages(state, active.id);
+  const assignedAgent = active.assignedAgentId ? state.agentsById[active.assignedAgentId] : null;
 
   return (
     <div className="flex h-full flex-col">
-      <header className="border-b border-neutral-200 px-4 py-3">
-        <h2 className="text-sm font-semibold text-neutral-900">{active.customerName}</h2>
-        <p className="text-xs text-neutral-500">Conversation ID: {active.id}</p>
+      <header className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
+        <div>
+          <h2 className="text-sm font-semibold text-neutral-900">{active.customerName}</h2>
+          <p className="text-xs text-neutral-500">Conversation ID: {active.id}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {active.unreadCount > 0 && (
+            <button
+              onClick={() => onMarkRead(active.id)}
+              className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-blue-700"
+            >
+              Mark as read
+            </button>
+          )}
+          <select
+            value={active.status}
+            onChange={(e) => onSetStatus(active.id, e.target.value as "open" | "pending" | "resolved")}
+            className="rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-xs font-medium text-neutral-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            <option value="open">Open</option>
+            <option value="pending">Pending</option>
+            <option value="resolved">Resolved</option>
+          </select>
+          <select
+            value={active.assignedAgentId || ""}
+            onChange={(e) => onAssignAgent(active.id, e.target.value || null)}
+            className="rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-xs font-medium text-neutral-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            <option value="">Unassigned</option>
+            {Object.values(state.agentsById).map((agent) => (
+              <option key={agent.id} value={agent.id}>
+                {agent.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </header>
 
       <div className="flex-1 space-y-3 overflow-y-auto bg-neutral-50 p-4">

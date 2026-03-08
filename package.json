@@ -9,9 +9,11 @@
     "test": "node -e \"console.log('No test runner is preconfigured in this starter. Bonus tests are optional.')\""
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.11.2",
     "next": "15.2.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-redux": "^9.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

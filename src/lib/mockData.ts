@@ -2,15 +2,60 @@ import { Agent, Conversation, Message } from "./types";
 export const agents: Agent[] = [
   { id: "a1", name: "Nisan" },
   { id: "a2", name: "Ashik" },
-  { id: "a3", name: "Rafi" }
+  { id: "a3", name: "Rafi" },
 ];
 export const conversations: Conversation[] = [
-  { id: "c1", channel: "whatsapp", customerName: "Tanvir Hasan", unreadCount: 2, assignedAgentId: "a1", status: "open", lastMessageId: "m3", updatedAt: 1708362000000 },
-  { id: "c2", channel: "messenger", customerName: "Jannat Ara", unreadCount: 0, assignedAgentId: null, status: "pending", lastMessageId: "m5", updatedAt: 1708361400000 },
-  { id: "c3", channel: "email", customerName: "Fahim Chowdhury", unreadCount: 1, assignedAgentId: "a2", status: "resolved", lastMessageId: "m7", updatedAt: 1708361100000 }
+  {
+    id: "c1",
+    channel: "whatsapp",
+    customerName: "Tanvir Hasan",
+    unreadCount: 2,
+    assignedAgentId: "a1",
+    status: "open",
+    lastMessageId: "m3",
+    updatedAt: 1708362000000,
+  },
+  {
+    id: "c2",
+    channel: "messenger",
+    customerName: "Jannat Ara",
+    unreadCount: 0,
+    assignedAgentId: null,
+    status: "pending",
+    lastMessageId: "m5",
+    updatedAt: 1708361400000,
+  },
+  {
+    id: "c3",
+    channel: "email",
+    customerName: "Fahim Chowdhury",
+    unreadCount: 1,
+    assignedAgentId: "a2",
+    status: "resolved",
+    lastMessageId: "m7",
+    updatedAt: 1708361100000,
+  },
 ];
 export const messages: Message[] = [
-  { id: "m1", conversationId: "c1", from: "customer", text: "Hi, I need help with pricing.", createdAt: 1708361600000 },
-  { id: "m2", conversationId: "c1", from: "agent", text: "Sure — which plan are you considering?", createdAt: 1708361700000 },
-  { id: "m3", conversationId: "c1", from: "customer", text: "Do you have a plan for small teams?", createdAt: 1708362000000 }
+  {
+    id: "m1",
+    conversationId: "c1",
+    from: "customer",
+    text: "Hi, I need help with pricing.",
+    createdAt: 1708361600000,
+  },
+  {
+    id: "m2",
+    conversationId: "c1",
+    from: "agent",
+    text: "Sure — which plan are you considering?",
+    createdAt: 1708361700000,
+  },
+  {
+    id: "m3",
+    conversationId: "c1",
+    from: "customer",
+    text: "Do you have a plan for small teams?",
+    createdAt: 1708362000000,
+  },
 ];
