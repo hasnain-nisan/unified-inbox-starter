@@ -239,6 +239,24 @@ Ask the candidate:
 
 ---
 
+# 11.5) Internal Reliability Note (Interviewer Only)
+
+Do not disclose this note to candidates before or during the test.
+
+The mock realtime stream intentionally includes:
+
+* Occasional duplicate `message:new` deliveries with the same `message.id`
+* Occasional delayed/out-of-order `message:new` deliveries with older `createdAt`
+
+Use this to evaluate deeper engineering quality:
+
+* Idempotency handling in reducer logic
+* Recency/order stability when late events arrive
+* Correctness of unread counters and preview behavior under noisy delivery
+* Ability to explain root cause and justify a robust fix
+
+---
+
 # 12) Interviewer Summary Template
 
 After the interview, summarize:
