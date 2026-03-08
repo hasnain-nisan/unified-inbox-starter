@@ -1,6 +1,7 @@
 'use client';
 import { selectActiveConversation, selectMessages } from "../lib/selectors";
-import { Agent, ConversationStatus, InboxState } from "../lib/store";
+import { InboxState } from "../lib/store";
+import { ConversationStatus } from "../lib/types";
 
 function formatDateTime(epochMs: number) {
   return new Intl.DateTimeFormat(undefined, {
@@ -19,10 +20,12 @@ type ThreadActions = {
 
 export default function Thread({ 
   state, 
-  actions 
+  actions,
+  isPending = false 
 }: { 
   state: InboxState;
   actions?: ThreadActions;
+  isPending?: boolean;
 }) {
   const active = selectActiveConversation(state);
 
@@ -73,7 +76,8 @@ export default function Thread({
             {active.unreadCount > 0 && (
               <button
                 onClick={() => actions.onMarkRead(active.id)}
-                className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50"
+                disabled={isPending}
+                className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Mark as Read
               </button>
@@ -82,7 +86,8 @@ export default function Thread({
             <select
               value={active.status}
               onChange={(e) => actions.onChangeStatus(active.id, e.target.value as ConversationStatus)}
-              className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50"
+              disabled={isPending}
+              className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <option value="open">Open</option>
               <option value="pending">Pending</option>
@@ -92,7 +97,8 @@ export default function Thread({
             <select
               value={active.assignedAgentId || ""}
               onChange={(e) => actions.onAssign(active.id, e.target.value || null)}
-              className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50"
+              disabled={isPending}
+              className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <option value="">Unassigned</option>
               {agents.map((agent) => (

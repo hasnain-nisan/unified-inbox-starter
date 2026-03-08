@@ -8,11 +8,11 @@ type ActionRequest =
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body: ActionRequest = await request.json();
-    const conversationId = params.id;
+    const { id: conversationId } = await params;
 
     // Validate request
     if (!body.type) {
@@ -22,7 +22,6 @@ export async function POST(
       );
     }
 
-    // Generate realtime event based on action type
     let event: RealtimeEvent;
 
     switch (body.type) {
@@ -60,16 +59,8 @@ export async function POST(
         );
     }
 
-    // In a real app, you would:
-    // 1. Validate the conversation exists
-    // 2. Update the database
-    // 3. Broadcast the event to realtime subscribers
-    // 4. Handle errors appropriately
-
-    // For this mock implementation, simulate a small delay
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    // Return the realtime event that should be applied
     return NextResponse.json({ event });
 
   } catch (error) {

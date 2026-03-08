@@ -49,8 +49,10 @@ export function applyRealtimeEvent(state: InboxState, event: RealtimeEvent): Inb
       // If conversation does not exist, return current state
       if (!conv) return state;
       
-      // Append message to conversation messages
       const existingMessages = state.messagesByConversationId[msg.conversationId] || [];
+      
+      if (existingMessages.some((m) => m.id === msg.id)) return state;
+      
       const newMessagesByConversationId = {
         ...state.messagesByConversationId,
         [msg.conversationId]: [...existingMessages, msg]
@@ -80,7 +82,6 @@ export function applyRealtimeEvent(state: InboxState, event: RealtimeEvent): Inb
         conversationOrder: newOrder
       };
     }
-    
     case "conversation:read": {
       const { conversationId } = event.payload;
       const conv = state.conversationsById[conversationId];
@@ -169,6 +170,7 @@ export function applyRealtimeEvent(state: InboxState, event: RealtimeEvent): Inb
     }
     
     default:
+      // Unknown event type — ignore safely
       return state;
   }
 }

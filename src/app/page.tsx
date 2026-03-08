@@ -3,7 +3,8 @@ import { useEffect, useReducer, useState } from "react";
 import ConversationList from "../components/ConversationList";
 import Thread from "../components/Thread";
 import { agents, conversations, messages } from "../lib/mockData";
-import { ConversationStatus, initialInboxState, inboxReducer } from "../lib/store";
+import { initialInboxState, inboxReducer } from "../lib/store";
+import { ConversationStatus } from "../lib/types";
 import { subscribeMockRealtime } from "../lib/mockRealtime";
 
 export default function Page() {
@@ -97,7 +98,7 @@ export default function Page() {
               />
             </section>
             <section className="md:col-span-7">
-              <Thread state={state} actions={threadActions} />
+              <Thread state={state} actions={threadActions} isPending={!!pendingAction} />
             </section>
           </div>
         </div>
